@@ -1,0 +1,47 @@
+{
+  "homebrew_version": "3.6.1-50-g6eaa510",
+  "used_options": [
+
+  ],
+  "unused_options": [
+
+  ],
+  "built_as_bottle": true,
+  "poured_from_bottle": true,
+  "loaded_from_api": null,
+  "installed_as_dependency": false,
+  "installed_on_request": true,
+  "changed_files": [
+    "homebrew.etcd.service",
+    "homebrew.mxcl.etcd.plist"
+  ],
+  "time": 1695542530,
+  "source_modified_time": 1663243350,
+  "compiler": "clang",
+  "aliases": [
+
+  ],
+  "runtime_dependencies": [
+
+  ],
+  "source": {
+    "spec": "stable",
+    "versions": {
+      "stable": "3.5.5",
+      "head": null,
+      "version_scheme": 0
+    },
+    "path": "/usr/local/Homebrew/Library/Taps/homebrew/homebrew-core/Formula/etcd.rb",
+    "tap_git_head": "aafcfb25248434027ece4d4369ff6362f2810e20",
+    "tap": "homebrew/core"
+  },
+  "arch": "x86_64",
+  "built_on": {
+    "os": "Macintosh",
+    "os_version": "macOS 12",
+    "cpu_family": "penryn",
+    "xcode": "14.0",
+    "clt": "14.0.0.0.1.1661618636",
+    "preferred_perl": "5.30"
+  }
+}

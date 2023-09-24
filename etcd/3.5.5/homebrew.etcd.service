@@ -1,0 +1,11 @@
+[Unit]
+Description=Homebrew generated unit for etcd
+
+[Install]
+WantedBy=default.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/opt/etcd/bin/etcd
+Restart=always
+WorkingDirectory=/usr/local/var
