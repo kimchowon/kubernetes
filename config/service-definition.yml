@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+ name: myapp-service
+spec:
+ type: NodePort
+ ports:
+  - targetPort: 80
+    port: 80
+    nodePort: 30008
+ selector: # 서비스와 파드를 연결
+  run: chocho-pod
