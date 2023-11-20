@@ -145,6 +145,96 @@
     - k delete csr <인증서 이름>
         - ex) k delete csr chocho
 
+### 5. kubeconfig
+
+- kubeconfig 설정
+    - kubectl 명령어로 kube-apiserver로 요청을 보낼때 사용자마다 권한을 인증하는 방법
+- kubeconfig 파일 템플릿
+    
+    ```yaml
+    apiVersion: v1
+    kind: Config
+    
+    # default 컨텍스트
+    # kubectl 명령을 할 때 current-context 기준으로 명령이 나간다. 
+    current-context: my-kube-admin@my-kube-playground
+    
+    clusters: # 쿠버네티스 내 어떤 환경인지
+    	- name: my-kube-playground
+    		cluster:
+    			certificate-authority: /etc/kubernetes/pki/ca.crt
+    			server: https://my-kube-playground:6443
+    contexts: # 어떤 환경에 어떤 사용자가 권한이 있는지 매핑
+    	- name: my-kube-admin@my-kube-playground
+    		context:
+    			cluster: my-kube-playground
+    			user: my-kube-admin
+    users: # 사용자
+    	- name: my-kube-admin
+    		user:
+    			client-certificate: /etc/kubernetes/pki/admin.crt
+    			client-key: /etc/kubernetes/pki/admin.key
+    ```
+    
+
+- kubeconfig 파일 조회:
+    - 현재 사용중인 kubeconfig 파일 조회: k config view
+    - 특정 kubeconfig 파일 조회: k config view —kubeconfig=<파일명>
+
+- 사용할 컨텍스트를 변경
+    - k config use-context <컨텍스트명>
+        - ex) k config use-context prod-user@production
+
+- kubeconfig에 네임스페이스 설정
+    - 특정 네임스페이스로내에서만 접근하도록 설정
+        
+        ```yaml
+        ..
+        contexts: # 어떤 환경에 어떤 사용자가 권한이 있는지 매핑
+        	- name: my-kube-admin@my-kube-playground
+        		context:
+        			cluster: my-kube-playground
+        			user: my-kube-admin
+        			namespace: finance # 네임스페이스 명시
+        
+        ..
+        ```
+        
+
+- kubeconfig 파일에 인증서를 넘기는 방법
+    1. 파일 경로를 명시
+        
+        ```yaml
+        ..
+        
+        clusters: # 쿠버네티스 내 어떤 환경인지
+        	- name: my-kube-playground
+        		cluster:
+        			certificate-authority: /etc/kubernetes/pki/ca.crt # 파일 경로 명시
+        			server: https://my-kube-playground:6443
+        contexts: # 어떤 환경에 어떤 사용자가 권한이 있는지 매핑
+        	- name: my-kube-admin@my-kube-playground
+        		context:
+        			cluster: my-kube-playground
+        			user: my-kube-admin
+        users: # 사용자
+        	- name: my-kube-admin
+        		user:
+        			client-certificate: /etc/kubernetes/pki/admin.crt
+        			client-key: /etc/kubernetes/pki/admin.key
+        ```
+        
+    2. 인증서 내용 자체를 명시
+        1. base64로 인코딩해서 넣어야함.
+            
+            ```yaml
+            clusters: # 쿠버네티스 내 어떤 환경인지
+            	- name: my-kube-playground
+            		cluster:
+            			certificate-authority-data: DKFJSLDJFSKLDJFSFJDLKFSJ...
+            ```
+            
+
 ### [Practice Test]
 
 ### 1. View Certificate Details
