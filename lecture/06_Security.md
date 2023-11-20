@@ -88,18 +88,62 @@
         curl https://kube-apiserver:6443/api/v1/pods --key admin.key --cert admin.crt --cacert ca.crt
         ```
         
-        서버 인증성 생성
+        서버 인증서 생성
         
         - kube-apiserver → etcd server, kubelet
         
         - kube-apiserver
             1. private key 생성
                 1. openssl genrsa -out [apiserver.ke](http://apiserver.ke)y 2048
-            2. CSR 파일 생성
+            2. 관리자에게 CSR 파일 생성 요청
                 1. openssl req -new -key apiserver.key -subj “/CN=kube-apiserver” -out apiserver.csr
             3. CA에 인증서 서명 요청
                 1. openssl x509 -req -in apiserver.csr -CA ca.crt -CAkey ca.key -out apiserver.crt
-    
+
+### 4. 인증서 관리 & 인증서 API
+
+- 인증서 키 파일은 마스터 노드에서 관리한다. (마스터 노드 = CA 관리 서버)
+    - 정확히는 인증서에 대한 전반적인 작업을 마스터 노드의 컨트롤러 매니저에서 담당한다.
+- 요청자가 인증서 서명을 받는 과정
+    1. 요청자가 private key 생성
+        1. openssl genrsa -out chocho.key 2048
+    2. 관리자에게 CSR 파일 생성 요청
+        1. openssl req -new -key chocho.key -subj “/CN=chocho” -out chocho.csr
+    3. CSR 파일 base64로 인코딩
+        1. cat chocho.csr | base64 -w 0
+    4. 인증서 서명 요청 개체 생성(yaml 파일 이용)
+        1. chocho-csr.yaml
+        
+        ```yaml
+        apiVersion: certificates.k8s.io/v1beta1
+        kind: CertificateSigningRequest
+        metadata:
+        	name: chocho
+        spec:
+        	groups:
+        		- system:authenticated # 어떤 그룹에 대한 인증서 요청인지
+        	usages:
+        		- digital signature
+        		- key encipherment
+        		- server auth
+        	request:
+        		# 인증서 서명 요청을 기입
+        		# base64로 인코딩한 값을 넣는다.
+        		DKFJSKDJFSDLFKJDKSFKSDJ#$#@#@DFKSDJFLSKDJFKSDFJSD
+        ```
+        
+    5. 인증서 서명 요청 객체가 생성되면 모든 서명 요청을 kubectl 명령어로 확인할 수 있음.
+        1. kubectl get csr
+    6. 인증서 승인 & 거절
+        1. 승인: kubectl certificate approve chocho
+        2. 거절: kubectl certificate deny chocho
+
+- 현재 존재하는 인증 요청의 yaml 파일 조회 방법
+    - k get csr <인증서 이름> -o yaml
+        - ex) k get csr chocho -o yaml
+- 인증서 삭제
+    - k delete csr <인증서 이름>
+        - ex) k delete csr chocho
 
 ### [Practice Test]
 
@@ -147,6 +191,9 @@
 You are asked to investigate and fix the issue. Once you fix the issue wait for sometime for kubectl to respond. Check the logs of the ETCD container.
 - kubectl 명령어가 먹통이라 etcd.yaml 파일에 잘못된 내용을 찾아 고치는 문제
 
+<aside>
+💡 풀이
+
 1. kubectl 명령어가 안된다는 것은 kube-apiserver 통신이 불가능한 상태
     - kube-apiserver의 상태를 모니터링 한다.
 2. kube-apiserver의 상태를 모니터링 명령어
@@ -165,7 +212,7 @@ You are asked to investigate and fix the issue. Once you fix the issue wait for 
     Error while dialing dial tcp 127.0.0.1:2379: connect: connection refused
     ```
     
-    - 2379 포트는 통상적으로 ETCD 서버 포드이다.
+    - 2379 포트는 통상적으로 ETCD 서버 포트이다.
 5. ETCD 상태를 모니터링
     1. crictl ps -a | grep etcd
 6. 5에서 조회한 ps id로 로그 확인
@@ -175,3 +222,7 @@ You are asked to investigate and fix the issue. Once you fix the issue wait for 
     ```yaml
     "error":"open /etc/kubernetes/pki/etcd/server-certificate.crt: no such file or directory"
     ```
+    
+8. /etc/kubernetes/pki/etcd 로 가보면 server-certificate.crt 가 아닌 server.crt가 있다. 
+9. /etc/kubernetes/manifest/etcd.yml 파일에 —cert-file 프로퍼티를 수정한다. 
+</aside>
