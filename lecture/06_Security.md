@@ -177,14 +177,18 @@
     ```
     
 
+- default kubeconfig 파일 경로
+    - 보통 .kube/ 아래에 config 파일로 있다.
 - kubeconfig 파일 조회:
     - 현재 사용중인 kubeconfig 파일 조회: k config view
     - 특정 kubeconfig 파일 조회: k config view —kubeconfig=<파일명>
 
 - 사용할 컨텍스트를 변경
-    - k config use-context <컨텍스트명>
+    - k config —kubeconfig=<config파일경로> use-context <컨텍스트명>
         - ex) k config use-context prod-user@production
 
+- 특정 kubeconfig 파일을 default 설정으로 변경하는 명령어
+    - mv <변경라혀는 config 파일>  <기존 default config 파일>
 - kubeconfig에 네임스페이스 설정
     - 특정 네임스페이스로내에서만 접근하도록 설정
         
