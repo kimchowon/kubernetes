@@ -319,6 +319,45 @@
     - ex) k auth can-i create deplyments —as dev-user —namespace test
     - ex) k auth can-i delete nodes —as dev-user —namespace test
 
+### 8. 클러스터 롤 바인딩
+
+- 롤, 롤 바인딩의 기본적으로 네임스페이스 기준으로 생성됨.
+    - 그러나 네임스페이스 종속적이지 않고 클러스터 종속적인 자원들이 있음.
+        - kubectl api-resources —namespaced=true/false 로 확인
+        - 대표적으로 node가 있음.
+- 클러스터 scope 자원 롤 및 바인딩 설정 파일
+    1. 롤 설정 파일
+    - cluster-admin-role.yaml
+        
+        ```yaml
+        apiVersion: rbac.authorization.k8s.io/v1
+        kind: ClusterRole
+        metadata:
+         name: cluster-administrator
+        rules:
+        - apiGroups: [""]
+          resources: ["nodes"]
+          verbs: ["list", "get"]
+        ```
+        
+    2. 롤 바인딩 설정 파일
+        
+        ```yaml
+        apiVersion: rbac.authorization.k8s.io/v1
+        kind: ClusterRoleBinding
+        metadata:
+         name: cluster-admin-role-binding
+        subjects:
+        - kind: User
+          name: cluster-admin
+          apiGroup: rbac.authorization.k8s.io
+        roleRef:
+         kind: ClusterRole
+         name: cluster-administrator
+         apiGroup: rbac.authorization.k8s.io
+        ```
+        
+
 ### [Practice Test]
 
 ### 1. View Certificate Details
@@ -399,4 +438,18 @@ You are asked to investigate and fix the issue. Once you fix the issue wait for 
     
 8. /etc/kubernetes/pki/etcd 로 가보면 server-certificate.crt 가 아닌 server.crt가 있다. 
 9. /etc/kubernetes/manifest/etcd.yml 파일에 —cert-file 프로퍼티를 수정한다. 
+</aside>
+
+### 8. Cluster Role Binding
+
+1. A new user `michelle` joined the team. She will be focusing on the `nodes` in the cluster. Create the required `ClusterRoles` and `ClusterRoleBindings` so she gets access to the `nodes`.
+- 새로운 팀원 michelle이 노드 관련 접근을 못함. 클러스터 롤 및 바인딩 정책을 추가해서 michelle에게 권한을 부여하는 문제
+
+<aside>
+💡 풀이
+
+1. 먼저 k get nodes —as michelle 을 해보면 forbidden 에러 발생함.
+2. 설정 파일(yaml)을 만들어도 되지만, 간단하게 명령어로 롤 및 롤바인딩 설정을 추가할 수도 있음.
+    1. 롤 추가: kubectl create clusterrole michelle-role --verb=get,list,watch --resource=nodes
+    2. 롤 바인딩 추가: kubectl create clusterrolebinding michelle-node-binding --clusterrole=michelle-role --user=michelle
 </aside>
