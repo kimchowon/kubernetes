@@ -239,6 +239,86 @@
             ```
             
 
+### 6. kubernetes API
+
+- https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.28/#api-groups
+- 쿠버네티스 내에서 사용 가능한 api 목록 조회
+    - 인증이 필요함
+        1. curl http://localhost:6443 -k —key <private key> —cert <인증요청서> —cacert <ca 인증서>
+        2. kube-proxy에 kubeconfig 파일에 인증 내용 저장
+            1. user → kube-proxy → kube-api 
+
+### 7. 권한 부여
+
+권한 부여 종류
+
+1. 노드 접근 권한 부여
+    1. 노드내 kubelet 에 인증 시스템이 있음. 
+2. ABAC: 특성 기반 권한 부여
+3. RBAC: 역할 기반 권한 부여
+    1. 각 역할마다 권한 집합을 부여하는 방법
+        1. ex) developer 역할에 A 권한 집합 부여
+    2. 설정 방법
+        1. 설정 파일 생성
+        - developer-role.yaml
+            
+            ```yaml
+            apiVersion: rbac.authorization.k8s.io/v1
+            kind: Role
+            metadata:
+             name: developer
+            rules:
+            - apiGroups: [""]
+              resources: ["pods"]
+              verbs: ["list", "get", "create", "update", "delete"]
+              resourceNames: ["blue", "orange"] #네임스페이스내 리소스에 권한 부여
+            
+            - apiGroups: [""]
+              resources: ["ConfigMap"]
+              verbs: ["create"]
+            ```
+            
+        2. k create -f developer-role.yaml
+        3. 사용자를 권한과 매핑
+            - role binding 이라는 설정 파일 생성
+            - devuser-developer-binding.yaml
+                
+                ```yaml
+                apiVersion: rbac.authrization.k8s.io/v1
+                kind: RoleBinding
+                metadata:
+                 name: devuser-developer-binding
+                 namespace: controlplane
+                subjects:
+                 - kind: User
+                   name: dev-user
+                   apiGroup: rbac.authorization.k8s.io
+                roleRef:
+                 kind: Role
+                 name: developer
+                 apiGroup: rbac.authorization.k8s.io
+                ```
+                
+    3. 생성된 롤 목록 조회: k get roles
+        1. k get roles : default 네임스페이스 내의 롤 조회
+        2. k get roles -n <네임스페이스명>: 네임스페이스 내 롤 조회
+        3. k get roles -A: 모든 네임스페이스내 롤 조회
+    4. 특정 롤에 대한 상세 정보 조회: k describe role <롤 이름>
+    5. 생성된 롤 바인딩 목록 조회: k get rolebindings
+    6. 특정 롤 바인딩에 대한 상세 정보 조회: k describe role <롤 바인딩 이름>
+    7. 롤 설정 수정: k edit role <롤 이름>
+        1. k edit role developer
+
+1. 웹훅
+    1. 외부에서 권한 정보를 관리할 때 외부에서 웹훅을 보내면 승인
+2. 항상 승인 or 항상 거절
+
+특정 행위에 권한이 있는지 확인
+
+- k auth can-i <행위> —as <롤> —namespace <네임스페이스>
+    - ex) k auth can-i create deplyments —as dev-user —namespace test
+    - ex) k auth can-i delete nodes —as dev-user —namespace test
+
 ### [Practice Test]
 
 ### 1. View Certificate Details
