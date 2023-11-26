@@ -473,16 +473,32 @@
        role: db
      policyTypes:
       - Ingress # 파드로 들어오는 정책
+      - Egress # 파드에서 나가는 정책
      ingress:
       - from:
         - podSelector:
            matchLabels:
-            nmae: api-pod
-        port:
+            name: api-pod
+          namespaceSelector: # 네임스페이스 지정 옵션, 설정하지 않으면 모든 네임스페이스 대해 허용
+           matchLabels:
+            name: prod # 네임스페이스에 이 라벨을 추가해놔야함.
+        - ipBlock:
+           cidr: 192.168.5.10/32 # 해당 ip에 대한 접근 허용
+        ports:
+         - protocol: TCP
+           port: 3306
+     egress:
+      - to:
+         - ipBlock:
+            cidr: 192.168.5.10/32
+        ports:
          - protocol: TCP
            port: 3306
     ```
     
+    - podSelector 옵션 disabled, namespaceSelector 옵션만 추가한 경우: 네임스페이스 내의 모든 파드에 대해 정책 적용
+- 쿠버네티스 클러스터에 속하지 않은 자원에 대한 네트워크 정책 설정
+    - ipBlock 옵션으로 해당 자원의 ip 주소를 명시하여 접근 허용
 
 ### [Practice Test]
 
