@@ -358,6 +358,79 @@
         ```
         
 
+### 9. 서비스 계정
+
+- 쿠버네티스 계정은 2개: 사용자 계정, 서비스 계정
+- 서비스 계정 생성
+    - k create serviceaccount <계정이름>
+- 서비스 계정 목록 조회
+    - k get serviceaccount
+- 서비스 계정 토큰
+    - 서비스 계정을 생성하면 토큰이 자동 생성됨.
+    - 서비스 계정의 비밀 객체가 생성되고  그 안에 토큰이 저장됨.
+    - 토큰 상세 조회
+        - k describe secret <토큰명>
+    - curl로 API 호출시 인증이 필요할 때 토큰을 실어서 요청할 수 있음.
+        - curl http://../api -insecure —header “Authorization: Bearer <토큰>”
+- 파드가 생성되면 자동으로 default 서비스 계정이 만들어짐
+    - 토큰 위치: /var/un/secret/kubernetes
+    - 기본 권한: API 쿼리 실행
+- 기존 파드의 서비스 계정은 수정할 수 없음. 파드를 삭제하고 새로 만들어야 함.
+- 파드에 서비스 계정 설정 하는 법
+    - /pod-definitoin.yaml
+        
+        ```yaml
+        apiVersion: v1
+        kind: Pod
+        ..
+        spec:
+         containers:
+          ..
+         serviceAccountName: dashboard-sa
+        ```
+        
+    - 아무것도 설정하지 않으면 default 서비스 계정이 파드에 자동으로 마운팅 되는데 이 기본설정을 끄는 옵션
+        
+        ```yaml
+        apiVersion: v1
+        kind: Pod
+        ..
+        spec:
+         containers:
+          ..
+         amountServiceAccountToken: false
+        ```
+        
+- 파드내 디렉토리 열거
+    - k exec -it <파드명> ls <디렉토리 경로>
+    - ex) k exec -it my-kubernetes-dashboard ls /var/run/secrets/kubernetes.io/serviceaccount
+
+### 10. 이미지 보안
+
+- 쿠버네티스에서 특정 개인 레파지토리 내의 이미지 접근 권한을 얻는 방법
+    1. 자격증명이 포함된 비밀 개체 생성
+        
+        ```yaml
+        # 비밀 개체 이름은 regcred라고 명명
+        k create secret docker-registry regcred \
+        --docker-server= \
+        --docker-username= \
+        --docker-password= \
+        --docker-email=
+        ```
+        
+    2. 파드 설정 파일에 비밀 개체를 지정
+        
+        ```yaml
+        apiVersion: v1
+        kind: Pod
+        ..
+        spec:
+         imagePullSecrets:
+          - name: regcred
+        ```
+        
+
 ### [Practice Test]
 
 ### 1. View Certificate Details
