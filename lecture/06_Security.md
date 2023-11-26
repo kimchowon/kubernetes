@@ -431,6 +431,59 @@
         ```
         
 
+### 11. 도커 보안
+
+- 파드 내 컨테이너 실행 유저 조회 명령어
+    - kubectl exec ubuntu-sleeper -- whoami
+- 특정 사용자로 컨테이너 실행하도록 옵션 추가
+    
+    ```yaml
+    ---
+    apiVersion: v1
+    kind: Pod
+    metadata:
+      name: ubuntu-sleeper
+      namespace: default
+    spec:
+      securityContext: ##
+        runAsUser: 1010 ##
+      containers:
+      - command:
+        - sleep
+        - "4800"
+        image: ubuntu
+        name: ubuntu-sleeper
+    ```
+    
+
+### 12. 네트워크 보안
+
+- 쿠버네티스 디폴트 네트워크 정책: 클러스터내 모든 포드는 서로 통신 가능
+- 파드에 네트워크 정책을 생성해서 모든 트래픽을 차단, 지정된 규칙에 부합하는 트래픽만 허용할 수 있음.
+- 네트워크 정책 설정 파일
+    
+    ```yaml
+    apiVersion: networking.k8s.io/v1
+    kind: NetworkPolicy
+    metadata:
+     name: db-policy
+    spec:
+     podSelector:
+      matchLabels:
+       role: db
+     policyTypes:
+      - Ingress # 파드로 들어오는 정책
+     ingress:
+      - from:
+        - podSelector:
+           matchLabels:
+            nmae: api-pod
+        port:
+         - protocol: TCP
+           port: 3306
+    ```
+    
+
 ### [Practice Test]
 
 ### 1. View Certificate Details
