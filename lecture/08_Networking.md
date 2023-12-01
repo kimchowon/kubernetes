@@ -3,7 +3,7 @@
 ### 1. 라우팅
 
 - 라우터: 다른 네트워크 간에 경로를 연결하는 장치
-- 시스템에서 라우팅 구성 확인 명령어: route
+- 시스템에서 라우팅 구성 확인 명령어: ip route
 - 라우터에 경로 추가 명령어
     - ip route add <도착지IP> <출발지IP>
     - ex) ip route add 192.168.2.0/24 via 192.168.1.1
@@ -92,3 +92,28 @@
             - docker run -p 8080:80 nginx
         - 이후 외부에서 8080 포트로 접속
             - curl http://192.168.1.10:8080
+
+### 4. Container Networking Interface(CNI)
+
+- CNI
+    - 컨테이너 런타임 환경에서 네트워킹 문제를 해결하기 위해 프로그램이 어떻게 개발되어야 하는지 정의한 표준
+    - docker는 자체 표준인 CNM이 있어서 CNI를 따르지 않음
+
+### 쿠버네티스 네트워크 명령어 TIP
+
+- 노드 ip 주소 조회
+    - k get nodes -o wide
+- ip에 연결된 네트워크 인터페이스 조회
+    - ip address
+    - ip link
+- 노드에 매핑된 MAC 주소 조회
+    1. 네트워크 인터페이스로 조회
+        - ip address 로 네트워크 인터페이스 먼저 조회
+        - ip link show <네트워크 인터페이스명>
+        - ex) ip link show eth0
+    2. ssh 로 노드에 직접 접속해서 조회
+        1. ssh <노드명>
+        2. ip address
+- 쿠버네티스 시스템들이 노드의 어떤 포트로 통신하고 있는지 조회
+    - ex) kube-scheduler인 경우
+    - netstat -npl | grep -i scheduler
