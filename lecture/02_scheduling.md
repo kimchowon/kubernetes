@@ -287,6 +287,43 @@ Node Affinity
         ```
         
 
+### 6. Daemon Set
+
+- Replica Set vs Daemon Set
+    - Replica Set
+        - 하나의 파드에 대한 복제 셋
+    - Daemon Set
+        - 클러스터내 노드들에 동일한 파드가 배포
+    
+    → 노드 단위로 데몬셋이 실행되고, 파드 단위로 복제셋이 실행
+    
+- 사용 사례
+    - 모니터링 시스템, 로그 시스템
+    - kube-proxy
+    - 네트워킹 솔루션
+- config
+    
+    ```json
+    apiVersion: apps/v1
+    kind: DaemonSet
+    metadata:
+    	name: monitoring-demon
+    spec:
+    	selector:
+    		matchLabels:
+    			app: monitoring-agent
+    	template:
+    		metadata:
+    			labels:
+    				app: monitoring-agent
+    		spec:
+    			containers:
+    				- name: monitoring-agent
+    					image: monitoring-agent
+    ```
+    
+- 조회: kubectl get daemonsets
+
 ## [Practice Test]
 
 ### 1. [Manual Scheduling(수동 스케줄링)](https://uklabs.kodekloud.com/topic/practice-test-manual-scheduling-2/)
@@ -340,10 +377,30 @@ Node Affinity
             1. ex) Taints: node-role.kubernetes.io/control-plane:NoSchedule 
         2. kubectl taint node `controlplane` node-role.kubernetes.io/control-plane:NoSchedule- (맨 끝에 -를 붙임)
 
-### 3. Node Affinity
+### 3. Static Pod
+
+1. Create a static pod named static-busybox that uses the busybox image and the command sleep 1000
+    1. 정적 파드를 yaml 파일을 만들어서 생성하는 문제
+    2. 풀이
+        1. k run static-busybox --image=busybox --dry-run=client -o yaml --command -- sleep 1000 > static-busybox.yaml 실행
+            1. 선언적 명령어를 실행할 때 —command 옵션은 가장 마지막에 붙어야 한다. 뒤에 다른 옵션이 붙으면 안됨. 
+            2. 정적 파드는 /etc/kubernetes/manifest 폴더 내에 파일을 생성하면 자동으로 파드가 생성된다. k create -f 명령어를 하지 않아도 된다.
+2. We just created a new static pod named **static-greenbox**. Find it and delete it.
+    1. 정적 파드를 삭제하는 문제 
+    2. 풀이
+        1. 정적 파드의 경로가 항상  /etc/kubernetes/manifest 인 것은 아님. /etc/kubernetes/manifest 안에 아무 파일도 없으면 다른 경로를 찾아야함. 
+        2. kubelet 설정 파일 경로: /var/lib/kubelet/config.yaml 
+            - config.yaml 에서 staticPodPath 옵션을 확인하면 된다.
 
 ## 명령어 꿀팁
 
 1. —watch
     1. 파드의 상태값을 계속 모니터링 하는 옵션
     2. kubectl get pods --watch
+2. yml 파일 내용을 새로운 yml 파일에 봍사붙여넣는 명령어
+    1. kubectl get pod webapp -o yaml > my-new-pod.yaml
+3. 모든 네임스페이스의 자원을 조회하는 옵션
+    1. —all-namespace 또는 -A
+    2. ex) kubectl get daemonsets -A
+4. pod내 애플리케이션의 로그를 확인
+    1. k logs <appname> -n <namespace>
